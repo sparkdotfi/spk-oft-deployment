@@ -38,10 +38,18 @@ export default async function () {
   return {
     contracts: [
         {
-            contract: ethereumContract
+            contract: ethereumContract,
+            config: {
+              delegate: '0x7a27a9f2A823190140cfb4027f4fBbfA438bac79',
+              owner: '0x7a27a9f2A823190140cfb4027f4fBbfA438bac79'
+            }
         },
         {
-            contract: bscContract
+            contract: bscContract,
+            config: {
+              delegate: '0x7a27a9f2A823190140cfb4027f4fBbfA438bac79',
+              owner: '0x7a27a9f2A823190140cfb4027f4fBbfA438bac79'
+            }
         }
     ],
     connections,
