@@ -1,75 +1,49 @@
-import { EndpointId } from '@layerzerolabs/lz-definitions'
+import {ExecutorOptionType} from '@layerzerolabs/lz-v2-utilities';
+import {OAppEnforcedOption, OmniPointHardhat} from '@layerzerolabs/toolbox-hardhat';
+import {EndpointId} from '@layerzerolabs/lz-definitions';
+import {generateConnectionsConfig} from '@layerzerolabs/metadata-tools';
 
-import type { OAppOmniGraphHardhat, OmniPointHardhat } from '@layerzerolabs/toolbox-hardhat'
+const ethereumContract: OmniPointHardhat = {
+  eid: EndpointId.ETHEREUM_V2_MAINNET,
+  contractName: 'SPKOFTAdapter',
+};
 
-/**
- *  WARNING: ONLY 1 OFTAdapter should exist for a given global mesh.
- *  The token address for the adapter should be defined in hardhat.config. This will be used in deployment.
- *
- *  for example:
- *
- *    sepolia: {
- *         eid: EndpointId.SEPOLIA_V2_TESTNET,
- *         url: process.env.RPC_URL_SEPOLIA || 'https://rpc.sepolia.org/',
- *         accounts,
- *         oftAdapter: {
- *             tokenAddress: '0x0', // Set the token address for the OFT adapter
- *         },
- *     },
- */
-const sepoliaContract: OmniPointHardhat = {
-    eid: EndpointId.SEPOLIA_V2_TESTNET,
-    contractName: 'MyOFTAdapter',
-}
+const bscContract: OmniPointHardhat = {
+  eid: EndpointId.BSC_V2_MAINNET,
+  contractName: 'SPKOFT',
+};
 
-const fujiContract: OmniPointHardhat = {
-    eid: EndpointId.AVALANCHE_V2_TESTNET,
-    contractName: 'MyOFT',
-}
+const EVM_ENFORCED_OPTIONS: OAppEnforcedOption[] = [
+  {
+    msgType: 1,
+    optionType: ExecutorOptionType.LZ_RECEIVE,
+    gas: 100000,
+    value: 0,
+  },
+];
 
-const amoyContract: OmniPointHardhat = {
-    eid: EndpointId.AMOY_V2_TESTNET,
-    contractName: 'MyOFT',
-}
+export default async function () {
+  // note: pathways declared here are automatically bidirectional
+  // if you declare A,B there's no need to declare B,A
+  const connections = await generateConnectionsConfig([
+    [
+      ethereumContract, // Chain A contract
+      bscContract, // Chain B contract
+      [['LayerZero Labs', 'Google'], []], // [ requiredDVN[], [ optionalDVN[], threshold ] ]
+      [15, 20], // [A to B confirmations, B to A confirmations]
+      [EVM_ENFORCED_OPTIONS, EVM_ENFORCED_OPTIONS], // Chain B enforcedOptions, Chain A enforcedOptions
+    ],
+  ]);
 
-const config: OAppOmniGraphHardhat = {
+  return {
     contracts: [
         {
-            contract: fujiContract,
+            contract: ethereumContract
         },
         {
-            contract: sepoliaContract,
-        },
-        {
-            contract: amoyContract,
-        },
+            contract: bscContract
+        }
     ],
-    connections: [
-        {
-            from: fujiContract,
-            to: sepoliaContract,
-        },
-        {
-            from: fujiContract,
-            to: amoyContract,
-        },
-        {
-            from: sepoliaContract,
-            to: fujiContract,
-        },
-        {
-            from: sepoliaContract,
-            to: amoyContract,
-        },
-        {
-            from: amoyContract,
-            to: sepoliaContract,
-        },
-        {
-            from: amoyContract,
-            to: fujiContract,
-        },
-    ],
+    connections,
+  };
 }
-
-export default config
