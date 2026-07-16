@@ -28,11 +28,13 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
     address internal constant SEND_ULN_ETH_MAINNET    = 0xbB2Ea70C9E858123480642Cf96acbcCE1372dCe1;  // Send Uln on Ethereum Mainnet
 
     address internal constant BSC_CANARY_DVN         = 0xfA9bA83C102283958B997Adc8B44ED3A3CdB5dDa;  // Canary on BSC Mainnet
+    address internal constant BSC_GOOGLE_DVN         = 0xD56e4eAb23cb81f43168F9F45211Eb027b9aC7cc;  // Google on BSC Mainnet
     address internal constant BSC_HORIZEN_DVN        = 0x247624e2143504730aeC22912ed41F092498bEf2;  // Horizen on BSC Mainnet
     address internal constant BSC_LAYERZERO_LABS_DVN = 0xfD6865c841c2d64565562fCc7e05e619A30615f0;  // LayerZero Labs on BSC Mainnet
     address internal constant BSC_NETHERMIND_DVN     = 0x31F748a368a893Bdb5aBB67ec95F232507601A73;  // Nethermind on BSC Mainnet
 
     address internal constant ETH_CANARY_DVN         = 0xa4fE5A5B9A846458a70Cd0748228aED3bF65c2cd;  // Canary on Ethereum Mainnet
+    address internal constant ETH_GOOGLE_DVN         = 0xD56e4eAb23cb81f43168F9F45211Eb027b9aC7cc;  // Google on Ethereum Mainnet
     address internal constant ETH_HORIZEN_DVN        = 0x380275805876Ff19055EA900CDb2B46a94ecF20D;  // Horizen on Ethereum Mainnet
     address internal constant ETH_LAYERZERO_LABS_DVN = 0x589dEDbD617e0CBcB916A9223F4d1300c294236b;  // LayerZero Labs on Ethereum Mainnet
     address internal constant ETH_NETHERMIND_DVN     = 0xa59BA433ac34D2927232918Ef5B2eaAfcF130BA5;  // Nethermind on Ethereum Mainnet
@@ -43,7 +45,9 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
     uint32 internal constant CONFIG_TYPE = 2;  // configType 2 is for UlnConfig
 
     function test_ETH_SendConfig() external {
-        vm.createSelectFork(vm.envString("ETH_MAINNET_RPC_URL"));
+        // Before config
+
+        vm.createSelectFork("https://eth.drpc.org", 25543972);
 
         IEndpointV2 endpoint = IEndpointV2(LAYERZERO_ENDPOINT_V2);
 
@@ -54,6 +58,27 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
             CONFIG_TYPE            // configType 2 is for UlnConfig
         );
         UlnConfig memory config = abi.decode(configBytes, (UlnConfig));
+
+        assertEq(config.confirmations,        15,                     "confirmations should be 15");
+        assertEq(config.requiredDVNCount,     2,                      "requiredDVNCount should be 4");
+        assertEq(config.optionalDVNCount,     0,                      "optionalDVNCount should be 0");
+        assertEq(config.optionalDVNThreshold, 0,                      "optionalDVNThreshold should be 4");
+        assertEq(config.requiredDVNs.length,  2,                      "requiredDVNs length should be 4");
+        assertEq(config.optionalDVNs.length,  0,                      "optionalDVNs length should be 0");
+        assertEq(config.requiredDVNs[0],      ETH_LAYERZERO_LABS_DVN, "first DVN should be LayerZero Labs");
+        assertEq(config.requiredDVNs[1],      ETH_GOOGLE_DVN,         "second DVN should be Google");
+
+        // After config
+
+        vm.createSelectFork(vm.envString("ETH_MAINNET_RPC_URL"));
+
+        configBytes = endpoint.getConfig(
+            OAPP,                  // OApp Address on Ethereum Mainnet
+            SEND_ULN_ETH_MAINNET,  // Send Uln on Ethereum Mainnet
+            BSC_EID,               // eid 30102 is for BSC
+            CONFIG_TYPE            // configType 2 is for UlnConfig
+        );
+        config = abi.decode(configBytes, (UlnConfig));
 
         assertEq(config.confirmations,        15,                     "confirmations should be 15");
         assertEq(config.requiredDVNCount,     4,                      "requiredDVNCount should be 4");
@@ -68,7 +93,9 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
     }
 
     function test_ETH_ReceiveConfig() external {
-        vm.createSelectFork(vm.envString("ETH_MAINNET_RPC_URL"));
+        // Before config
+
+        vm.createSelectFork("https://eth.drpc.org", 25543972);
 
         IEndpointV2 endpoint = IEndpointV2(LAYERZERO_ENDPOINT_V2);
 
@@ -79,6 +106,27 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
             CONFIG_TYPE               // configType 2 is for UlnConfig
         );
         UlnConfig memory config = abi.decode(configBytes, (UlnConfig));
+
+        assertEq(config.confirmations,        20,                     "confirmations should be 20");
+        assertEq(config.requiredDVNCount,     2,                      "requiredDVNCount should be 4");
+        assertEq(config.optionalDVNCount,     0,                      "optionalDVNCount should be 0");
+        assertEq(config.optionalDVNThreshold, 0,                      "optionalDVNThreshold should be 4");
+        assertEq(config.requiredDVNs.length,  2,                      "requiredDVNs length should be 4");
+        assertEq(config.optionalDVNs.length,  0,                      "optionalDVNs length should be 0");
+        assertEq(config.requiredDVNs[0],      ETH_LAYERZERO_LABS_DVN, "first DVN should be LayerZero Labs");
+        assertEq(config.requiredDVNs[1],      ETH_GOOGLE_DVN,         "second DVN should be Google");
+
+        // After config
+
+        vm.createSelectFork(vm.envString("ETH_MAINNET_RPC_URL"));
+
+        configBytes = endpoint.getConfig(
+            OAPP,                     // OApp Address on Ethereum Mainnet
+            RECEIVE_ULN_ETH_MAINNET,  // Receive Uln on Ethereum Mainnet
+            BSC_EID,                  // eid 30102 is for BSC
+            CONFIG_TYPE               // configType 2 is for UlnConfig
+        );
+        config = abi.decode(configBytes, (UlnConfig));
 
         assertEq(config.confirmations,        20,                     "confirmations should be 20");
         assertEq(config.requiredDVNCount,     4,                      "requiredDVNCount should be 4");
@@ -93,7 +141,9 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
     }
 
     function test_BSC_SendConfig() external {
-        vm.createSelectFork(vm.envString("BSC_MAINNET_RPC_URL"));
+        // Before config
+
+        vm.createSelectFork("https://bsc-dataseed1.binance.org", 110291876);
 
         IEndpointV2 endpoint = IEndpointV2(LAYERZERO_ENDPOINT_V2);
 
@@ -104,6 +154,27 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
             CONFIG_TYPE            // configType 2 is for UlnConfig
         );
         UlnConfig memory config = abi.decode(configBytes, (UlnConfig));
+
+        assertEq(config.confirmations,        20,                     "confirmations should be 20");
+        assertEq(config.requiredDVNCount,     2,                      "requiredDVNCount should be 4");
+        assertEq(config.optionalDVNCount,     0,                      "optionalDVNCount should be 0");
+        assertEq(config.optionalDVNThreshold, 0,                      "optionalDVNThreshold should be 4");
+        assertEq(config.requiredDVNs.length,  2,                      "requiredDVNs length should be 4");
+        assertEq(config.optionalDVNs.length,  0,                      "optionalDVNs length should be 0");
+        assertEq(config.requiredDVNs[0],      BSC_GOOGLE_DVN,         "first DVN should be Google");
+        assertEq(config.requiredDVNs[1],      BSC_LAYERZERO_LABS_DVN, "second DVN should be LayerZero Labs");
+
+        // After config
+
+        vm.createSelectFork(vm.envString("BSC_MAINNET_RPC_URL"));
+
+        configBytes = endpoint.getConfig(
+            OAPP,                  // OApp Address on BSC Mainnet
+            SEND_ULN_BSC_MAINNET,  // Send Uln on BSC Mainnet
+            ETH_EID,               // eid 30101 is for Ethereum Mainnet
+            CONFIG_TYPE            // configType 2 is for UlnConfig
+        );
+        config = abi.decode(configBytes, (UlnConfig));
 
         assertEq(config.confirmations,        20,                     "confirmations should be 20");
         assertEq(config.requiredDVNCount,     4,                      "requiredDVNCount should be 4");
@@ -118,7 +189,9 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
     }
 
     function test_BSC_ReceiveConfig() external {
-        vm.createSelectFork(vm.envString("BSC_MAINNET_RPC_URL"));
+        // Before config
+
+        vm.createSelectFork("https://bsc-dataseed1.binance.org", 110292332);
 
         IEndpointV2 endpoint = IEndpointV2(LAYERZERO_ENDPOINT_V2);
 
@@ -129,6 +202,27 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
             CONFIG_TYPE               // configType 2 is for UlnConfig
         );
         UlnConfig memory config = abi.decode(configBytes, (UlnConfig));
+
+        assertEq(config.confirmations,        15,                     "confirmations should be 15");
+        assertEq(config.requiredDVNCount,     2,                      "requiredDVNCount should be 4");
+        assertEq(config.optionalDVNCount,     0,                      "optionalDVNCount should be 0");
+        assertEq(config.optionalDVNThreshold, 0,                      "optionalDVNThreshold should be 4");
+        assertEq(config.requiredDVNs.length,  2,                      "requiredDVNs length should be 4");
+        assertEq(config.optionalDVNs.length,  0,                      "optionalDVNs length should be 0");
+        assertEq(config.requiredDVNs[0],      BSC_GOOGLE_DVN,         "first DVN should be Google");
+        assertEq(config.requiredDVNs[1],      BSC_LAYERZERO_LABS_DVN, "second DVN should be LayerZero Labs");
+
+        // After config
+
+        vm.createSelectFork(vm.envString("BSC_MAINNET_RPC_URL"));
+
+        configBytes = endpoint.getConfig(
+            OAPP,                     // OApp Address on BSC Mainnet
+            RECEIVE_ULN_BSC_MAINNET,  // Receive Uln on BSC Mainnet
+            ETH_EID,                  // eid 30101 is for Ethereum Mainnet
+            CONFIG_TYPE               // configType 2 is for UlnConfig
+        );
+        config = abi.decode(configBytes, (UlnConfig));
 
         assertEq(config.confirmations,        15,                     "confirmations should be 15");
         assertEq(config.requiredDVNCount,     4,                      "requiredDVNCount should be 4");
