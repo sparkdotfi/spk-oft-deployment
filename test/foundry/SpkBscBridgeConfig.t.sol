@@ -47,7 +47,7 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
     function test_ETH_SendConfig() external {
         // Before config
 
-        vm.createSelectFork("https://eth.drpc.org", 25543972);
+        vm.createSelectFork(getChain("mainnet").rpcUrl);
 
         IEndpointV2 endpoint = IEndpointV2(LAYERZERO_ENDPOINT_V2);
 
@@ -95,7 +95,7 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
     function test_ETH_ReceiveConfig() external {
         // Before config
 
-        vm.createSelectFork("https://eth.drpc.org", 25543972);
+        vm.createSelectFork(getChain("mainnet").rpcUrl);
 
         IEndpointV2 endpoint = IEndpointV2(LAYERZERO_ENDPOINT_V2);
 
@@ -143,7 +143,7 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
     function test_BSC_SendConfig() external {
         // Before config
 
-        vm.createSelectFork("https://bsc-dataseed1.binance.org", 110291876);
+        vm.createSelectFork(getChain("bnb_smart_chain").rpcUrl);
 
         IEndpointV2 endpoint = IEndpointV2(LAYERZERO_ENDPOINT_V2);
 
@@ -191,7 +191,7 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
     function test_BSC_ReceiveConfig() external {
         // Before config
 
-        vm.createSelectFork("https://bsc-dataseed1.binance.org", 110292332);
+        vm.createSelectFork(getChain("bnb_smart_chain").rpcUrl);
 
         IEndpointV2 endpoint = IEndpointV2(LAYERZERO_ENDPOINT_V2);
 
