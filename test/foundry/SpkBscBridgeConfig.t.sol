@@ -1,12 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-interface IEndpointV2 {
-    function getConfig(address receiver, address uln, uint32 eid, uint32 configType) external view returns (bytes memory);
-}
-
 // DevTools imports
 import { TestHelperOz5 } from "@layerzerolabs/test-devtools-evm-foundry/contracts/TestHelperOz5.sol";
+
+interface IEndpointV2 {
+    function getConfig(address receiver, address uln, uint32 eid, uint32 configType) external view returns (bytes memory);
+
+    function getSendLibrary(address receiver, uint32 eid) external view returns (address);
+    function getReceiveLibrary(address receiver, uint32 eid) external view returns (address);
+}
+
+interface IOAppLike {
+    function peers(uint32 eid) external view returns (bytes32);
+}
 
 contract SpkBscBridgeConfigTest is TestHelperOz5 {
 
@@ -234,6 +241,78 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
         assertEq(config.requiredDVNs[1],      BSC_NETHERMIND_DVN,     "second DVN should be Nethermind");
         assertEq(config.requiredDVNs[2],      BSC_CANARY_DVN,         "third DVN should be Canary");
         assertEq(config.requiredDVNs[3],      BSC_LAYERZERO_LABS_DVN, "fourth DVN should be LayerZero Labs");
+    }
+
+    function test_ETH_peerConfig() external {
+        // Before config
+
+        vm.createSelectFork(getChain("mainnet").rpcUrl);
+
+        bytes32 peer = IOAppLike(OAPP).peers(BSC_EID);
+
+        assertEq(peer, 0x0000000000000000000000000000000000000000000000000000000000000000, "peer should be 0");
+
+        // After config
+
+        vm.createSelectFork(vm.envString("ETH_MAINNET_RPC_URL"));
+
+        peer = IOAppLike(OAPP).peers(BSC_EID);
+
+        assertEq(peer, bytes32(uint256(uint160(OAPP))));
+    }
+
+    function test_BSC_peerConfig() external {
+        // Before config
+
+        vm.createSelectFork(getChain("bnb_smart_chain").rpcUrl);
+
+        bytes32 peer = IOAppLike(OAPP).peers(ETH_EID);
+
+        assertEq(peer, 0x0000000000000000000000000000000000000000000000000000000000000000, "peer should be 0");
+
+        // After config
+
+        vm.createSelectFork(vm.envString("BSC_MAINNET_RPC_URL"));
+
+        peer = IOAppLike(OAPP).peers(ETH_EID);
+
+        assertEq(peer, bytes32(uint256(uint160(OAPP))));
+    }
+
+    function test_ETH_libraryConfig() external {
+        IEndpointV2 endpoint = IEndpointV2(LAYERZERO_ENDPOINT_V2);
+
+        // Before config
+
+        vm.createSelectFork(getChain("mainnet").rpcUrl);
+
+        assertEq(endpoint.getSendLibrary(OAPP, BSC_EID),    SEND_ULN_ETH_MAINNET);
+        assertEq(endpoint.getReceiveLibrary(OAPP, BSC_EID), RECEIVE_ULN_ETH_MAINNET);
+
+        // After config
+
+        vm.createSelectFork(vm.envString("ETH_MAINNET_RPC_URL"));
+
+        assertEq(endpoint.getSendLibrary(OAPP, BSC_EID),    SEND_ULN_ETH_MAINNET);
+        assertEq(endpoint.getReceiveLibrary(OAPP, BSC_EID), RECEIVE_ULN_ETH_MAINNET);
+    }
+
+    function test_BSC_libraryConfig() external {
+        IEndpointV2 endpoint = IEndpointV2(LAYERZERO_ENDPOINT_V2);
+
+        // Before config
+
+        vm.createSelectFork(getChain("bnb_smart_chain").rpcUrl);
+
+        assertEq(endpoint.getSendLibrary(OAPP, ETH_EID),    SEND_ULN_BSC_MAINNET);
+        assertEq(endpoint.getReceiveLibrary(OAPP, ETH_EID), RECEIVE_ULN_BSC_MAINNET);
+
+        // After config
+
+        vm.createSelectFork(vm.envString("BSC_MAINNET_RPC_URL"));
+
+        assertEq(endpoint.getSendLibrary(OAPP, ETH_EID),    SEND_ULN_BSC_MAINNET);
+        assertEq(endpoint.getReceiveLibrary(OAPP, ETH_EID), RECEIVE_ULN_BSC_MAINNET);
     }
 
 }
