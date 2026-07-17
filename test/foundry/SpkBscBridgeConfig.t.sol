@@ -6,9 +6,9 @@ import { TestHelperOz5 } from "@layerzerolabs/test-devtools-evm-foundry/contract
 
 interface IEndpointV2 {
     function getConfig(address receiver, address uln, uint32 eid, uint32 configType) external view returns (bytes memory);
-
     function getSendLibrary(address receiver, uint32 eid) external view returns (address);
-    function getReceiveLibrary(address receiver, uint32 eid) external view returns (address);
+    function getReceiveLibrary(address receiver, uint32 eid) external view returns (address, bool);
+    function isDefaultSendLibrary(address receiver, uint32 eid) external view returns (bool);
 }
 
 interface IOAppLike {
@@ -286,15 +286,31 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
 
         vm.createSelectFork(getChain("mainnet").rpcUrl);
 
-        assertEq(endpoint.getSendLibrary(OAPP, BSC_EID),    SEND_ULN_ETH_MAINNET);
-        assertEq(endpoint.getReceiveLibrary(OAPP, BSC_EID), RECEIVE_ULN_ETH_MAINNET);
+        (address receiveLibrary, bool isDefaultReceiveLibraryBefore) = endpoint.getReceiveLibrary(OAPP, BSC_EID);
+
+        assertEq(isDefaultReceiveLibraryBefore, false);
+
+        bool isDefaultSendLibraryBefore = endpoint.isDefaultSendLibrary(OAPP, BSC_EID);
+
+        assertEq(isDefaultSendLibraryBefore, false);
+
+        assertEq(endpoint.getSendLibrary(OAPP, BSC_EID), SEND_ULN_ETH_MAINNET);
+        assertEq(receiveLibrary,                         RECEIVE_ULN_ETH_MAINNET);
 
         // After config
 
         vm.createSelectFork(vm.envString("ETH_MAINNET_RPC_URL"));
 
-        assertEq(endpoint.getSendLibrary(OAPP, BSC_EID),    SEND_ULN_ETH_MAINNET);
-        assertEq(endpoint.getReceiveLibrary(OAPP, BSC_EID), RECEIVE_ULN_ETH_MAINNET);
+        (address receiveLibraryAfter, bool isDefaultReceiveLibraryAfter) = endpoint.getReceiveLibrary(OAPP, BSC_EID);
+
+        assertEq(isDefaultReceiveLibraryAfter, false);
+
+        bool isDefaultSendLibraryAfter = endpoint.isDefaultSendLibrary(OAPP, BSC_EID);
+
+        assertEq(isDefaultSendLibraryAfter, false);
+
+        assertEq(endpoint.getSendLibrary(OAPP, BSC_EID), SEND_ULN_ETH_MAINNET);
+        assertEq(receiveLibraryAfter,                    RECEIVE_ULN_ETH_MAINNET);
     }
 
     function test_BSC_libraryConfig() external {
@@ -304,15 +320,31 @@ contract SpkBscBridgeConfigTest is TestHelperOz5 {
 
         vm.createSelectFork(getChain("bnb_smart_chain").rpcUrl);
 
-        assertEq(endpoint.getSendLibrary(OAPP, ETH_EID),    SEND_ULN_BSC_MAINNET);
-        assertEq(endpoint.getReceiveLibrary(OAPP, ETH_EID), RECEIVE_ULN_BSC_MAINNET);
+        (address receiveLibrary, bool isDefaultReceiveLibraryBefore) = endpoint.getReceiveLibrary(OAPP, ETH_EID);
+
+        assertEq(isDefaultReceiveLibraryBefore, false);
+
+        bool isDefaultSendLibraryBefore = endpoint.isDefaultSendLibrary(OAPP, ETH_EID);
+
+        assertEq(isDefaultSendLibraryBefore, false);
+
+        assertEq(endpoint.getSendLibrary(OAPP, ETH_EID), SEND_ULN_BSC_MAINNET);
+        assertEq(receiveLibrary,                         RECEIVE_ULN_BSC_MAINNET);
 
         // After config
 
         vm.createSelectFork(vm.envString("BSC_MAINNET_RPC_URL"));
 
-        assertEq(endpoint.getSendLibrary(OAPP, ETH_EID),    SEND_ULN_BSC_MAINNET);
-        assertEq(endpoint.getReceiveLibrary(OAPP, ETH_EID), RECEIVE_ULN_BSC_MAINNET);
+        (address receiveLibraryAfter, bool isDefaultReceiveLibraryAfter) = endpoint.getReceiveLibrary(OAPP, ETH_EID);
+
+        assertEq(isDefaultReceiveLibraryAfter, false);
+
+        bool isDefaultSendLibraryAfter = endpoint.isDefaultSendLibrary(OAPP, ETH_EID);
+
+        assertEq(isDefaultSendLibraryAfter, false);
+
+        assertEq(endpoint.getSendLibrary(OAPP, ETH_EID), SEND_ULN_BSC_MAINNET);
+        assertEq(receiveLibraryAfter,                    RECEIVE_ULN_BSC_MAINNET);
     }
 
 }
